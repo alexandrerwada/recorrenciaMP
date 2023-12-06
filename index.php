@@ -84,7 +84,6 @@ foreach ($usuarios as $usuario) {
                     echo "<td>{$produto['preco']}</td>";
                     echo "<td>{$produto['descricao']}</td>";
                     echo "<td><button class='btn btn-primary assinar-btn' data-toggle='modal' data-target='#checkoutModal' data-produto='{$produto['nome']}' data-preco='{$produto['preco']}' data-descricao='{$produto['descricao']}' data-codigo='{$produto['codigo']}'>Assinar</button></td>";
-
                     echo "</tr>";
                 }
                 ?>
