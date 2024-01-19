@@ -7,16 +7,16 @@ include 'configs.php';
 // Para o exemplo, vou criar uma variável de exemplo
 $usuarioAtualNome = $usuarios[0]['nome']; // Isso seria dinamicamente definido na realidade
 $usuarioAtual = $usuarios[0]['email']; // Isso seria dinamicamente definido na realidade
+$usuarioAtualId = $usuarios[0]['id'];
 
 // Verifica se o usuário atual é um assinante
 $eAssinante = false;
 foreach ($usuarios as $usuario) {
-    if ($usuario["email"] === $usuarioAtual && $usuario["assinante"] === true) {
+    if ($usuario['email'] === $usuarioAtual && $usuario['assinante'] === true) {
         $eAssinante = true;
+
         break;
     }
-    
-    
 }
 
 
@@ -30,6 +30,13 @@ foreach ($usuarios as $usuario) {
     <title>Checkout Pagamento Recorrente</title>
     <!-- Bootstrap 4 via CDN -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <script src="https://sdk.mercadopago.com/js/v2"></script>
+    <script>
+        const mp = new MercadoPago("APP_USR-7b1462b3-2205-4957-8e64-7a6b9f9bc644");
+        const bricksBuilder = mp.bricks();
+
+
+    </script>
 </head>
 
 <body>
@@ -79,14 +86,14 @@ foreach ($usuarios as $usuario) {
             <tbody>
                 <?php
                 foreach ($produtos as $produto) {
-                    echo "<tr>";
+                    echo '<tr>';
                     echo "<td>{$produto['nome']}</td>";
                     echo "<td>{$produto['preco']}</td>";
                     echo "<td>{$produto['descricao']}</td>";
-                    echo "<td><button class='btn btn-primary assinar-btn' data-toggle='modal' data-target='#checkoutModal' data-produto='{$produto['nome']}' data-preco='{$produto['preco']}' data-descricao='{$produto['descricao']}' data-codigo='{$produto['codigo']}'>Assinar</button></td>";
-                    echo "</tr>";
+                    echo "<td><button class='btn btn-primary assinar-btn' data-toggle='modal' data-target='#checkoutModal'   data-id-plano='{$produto['id_plano']}'  data-produto='{$produto['nome']}' data-preco='{$produto['preco']}' data-preco-sem-formatacao='{$produto['preco_sem_formatacao']}' data-descricao='{$produto['descricao']}' data-codigo='{$produto['codigo']}'>Assinar</button></td>";
+                    echo '</tr>';
                 }
-                ?>
+?>
             </tbody>
         </table>
     </div>
@@ -120,8 +127,9 @@ foreach ($usuarios as $usuario) {
                     <p id="descricaoProduto"></p>
                     <p id="codigoProduto"></p>
                     <br>
+                    <div id="paymentBrick_container"></div>
                     <!-- Formulário de Pagamento -->
-                    <form>
+                    <!-- <form>
                         <div class="form-group">
                             <label for="cardNumber">Número do Cartão</label>
                             <input type="text" class="form-control" id="cardNumber" placeholder="0000 0000 0000 0000">
@@ -135,7 +143,7 @@ foreach ($usuarios as $usuario) {
                             <input type="text" class="form-control" id="cardCVC" placeholder="CVC">
                         </div>
                         <button type="submit" class="btn btn-primary">Efetuar Pagamento</button>
-                    </form>
+                    </form> -->
                 </div>
             </div>
         </div>
@@ -148,11 +156,76 @@ foreach ($usuarios as $usuario) {
 
     <script>
         $(document).ready(function() {
+            const renderPaymentBrick = async (bricksBuilder, valor, id_plano) => {
+                    const settings = {
+                    initialization: {
+                        amount: valor,
+                        redirectMode: 'modal'
+                    },
+                    customization: {
+                        paymentMethods: {
+                        creditCard: "all",
+                        },
+                    },
+                    callbacks: {
+                        onReady: () => {
+                        /*
+                            Callback chamado quando o Brick estiver pronto.
+                            Aqui você pode ocultar loadings do seu site, por exemplo.
+                        */
+                        },
+                        onSubmit: ({ selectedPaymentMethod, formData }) => {
+                            formData['id_plano'] = id_plano;
+                        // callback chamado ao clicar no botão de submissão dos dados
+                        return new Promise((resolve, reject) => {
+                            fetch("/checkout.php", {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                            },
+                            body: JSON.stringify(formData),
+                            })
+                            .then((response) => response.text())
+                            .then((response) => {
+                                alert(response);
+                                resolve();
+                            })
+                            .catch((error) => {
+                                alert(error);
+                                // lidar com a resposta de erro ao tentar criar o pagamento
+                                resolve();
+                            });
+                        });
+                        },
+                        onError: (error) => {
+                        // callback chamado para todos os casos de erro do Brick
+                        console.error(error);
+                        },
+                    },
+                    };
+                    window.paymentBrickController = await bricksBuilder.create(
+                    "payment",
+                    "paymentBrick_container",
+                    settings
+                    );
+                };
+            
+            
+            
             $('.assinar-btn').on('click', function() {
                 var produto = $(this).data('produto');
+                var id_plano = $(this).data('id-plano');
                 var preco = $(this).data('preco');
+                var precoSemFormatacao = $(this).data('preco-sem-formatacao');
+                
                 var descricao = $(this).data('descricao');
                 var codigo = $(this).data('codigo');
+
+                if (window.paymentBrickController) {
+                    window.paymentBrickController.unmount();
+                }
+
+                renderPaymentBrick(bricksBuilder, precoSemFormatacao, id_plano);
 
                 $('#produtoEscolhido').text('Produto: ' + produto);
                 $('#precoProduto').text('Preço: ' + preco);

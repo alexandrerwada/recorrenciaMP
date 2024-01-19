@@ -4,6 +4,7 @@
 $usuarios = [
     // Estrutura de exemplo para usuários
     [
+        "id" => 1,
         "nome" => "Usuário 1",
         "email" => "email1@exemplo.com",
         "assinante" => false,
@@ -11,6 +12,7 @@ $usuarios = [
         "dataInicio" => "2023-01-01"
     ],
     [
+        "id" => 2,
         "nome" => "Usuário 2",
         "email" => "email2@exemplo.com",
         "assinante" => true,
@@ -18,6 +20,7 @@ $usuarios = [
         "dataInicio" => "2023-01-01"
     ],
     [
+        "id" => 3,
         "nome" => "Usuário 3",
         "email" => "email3@exemplo.com",
         "assinante" => true,

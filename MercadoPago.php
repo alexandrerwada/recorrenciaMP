@@ -9,7 +9,7 @@ use MercadoPago\Net\MPSearchRequest;
 
 class MercadoPago
 {
-    private $accessToken = 'APP_USR-4818136613918222-120520-a3ce8b1f4f3fbf79ebbc5a1945547c2f-222698176';
+    private $accessToken = 'APP_USR-4642861700825580-121223-cb60bb4bd08630567344cbd703208047-1589659827';
 
     public function __construct()
     {
